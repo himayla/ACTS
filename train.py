@@ -12,7 +12,7 @@ from models import SNLI #, LSTM, BiLSTM, BiLSTM_pooling
 PATH_TO_DATA = 'dataset/'
 GLOVE_PATH = 'pretrained/glove.840B.300d.txt'
 
-params_model = {'model_name': 'base', 'bsize': 64, 'word_emb_dim': 300, 'enc_lstm_dim': 2048, 'pool_type': 'max', 'dpout_model': 0.0,\
+params_model = {'model_name': 'base', 'bsize': 2, 'word_emb_dim': 300, 'enc_lstm_dim': 2048, 'pool_type': 'max', 'dpout_model': 0.0,\
                 'fc_dim': 512, 'n_classes': 3, 'learning_rate': 0.1, 'weight_decay': 1e-4, 'momentum': 0.08, 'max_epoch': 50}
 
 def evaluate_model(model):
@@ -32,32 +32,47 @@ def evaluate_model(model):
 if __name__ == "__main__":
     print("*PREPARING FOR TRAINING*")
 
-    demo = {'s1': ['A person on a horse jumps over a broken down airplane.'], 's2': [['A person is training his horse for a competition.']], 'target': [1]}
-
-    print("*BUILDING THE TEST VOCAB*")
-    vocab, embeddings = build_vocab(demo['s1'] + demo['s2'], GLOVE_PATH)
-
-    print(f'demo:{vocab}')
-
- 
     print("*BUILDING THE VOCAB*")
     train, dev, test = load_data(PATH_TO_DATA)
-    vocab, embedings = build_vocab(train['s1'] + train['s2'] +
+    # print(train)
+    vocab, word_vec = build_vocab(train['s1'] + train['s2'] +
                             dev['s1'] + dev['s2'] +
                             test['s1'] + test['s2'], GLOVE_PATH)
-    print(f'real:{vocab}')
 
-    print('Found {0} words from the {1}) words with glove vectors'.format(len(embeddings), len(vocab)))
+    print('Found {0} words from the {1} words with glove vectors'.format(len(word_vec), len(vocab)))
 
-    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    # s1 = train['s1']
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    s1 = train['s1']
+
+    for stidx in range(0, len(s1), params_model['bsize']):
+        batch = s1[stidx:stidx + params_model['bsize']]
+        s1_batch = get_batch(batch, word_vec, params_model)
+        # s2_batch, s2_len = get_batch(s2[stidx:stidx + params_model['bsize']], word_vec, params_model)
+    print(s1_batch)
     # s2 = train['s2']
     # target = train['target']
 
-    # for stidx in range(0, len(s1), params_model['bsize']):
-    #     s1_batch, s1_len = get_batch(s1[stidx:stidx + params_model['bsize']], embedings, params_model)
-    #     s2_batch, s2_len = get_batch(s2[stidx:stidx + params_model['bsize']], embedings, params_model)
+    # n_w = np.sum([len(x) for x in sentences])
 
+    # for i in range(len(sentences)):
+    #     s_f = [word for word in sentences[i] if word in word_vec]
+    #     if not s_f:
+    #         import warnings
+    #         warnings.warn('No words in "%s" (idx=%s) have w2v vectors. \
+    #                         Replacing by "</s>"..' % (sentences[i], i))
+    #         s_f = ['</s>']
+    # sentences[i] = s_f
+
+    # lengths = np.array([len(s) for s in sentences])
+    # n_wk = np.sum(lengths)
+
+    # lengths, idx_sort = np.sort(lengths)[::-1], np.argsort(-lengths)
+    # sentences = np.array(sentences)[idx_sort]
+
+    # print(sentences)
+
+ 
 
 
     # print("*SETTING UP SNLI MODEL*")
