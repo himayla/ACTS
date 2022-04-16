@@ -9,25 +9,26 @@ import pandas as pd
 from torch.utils.tensorboard import SummaryWriter
 from models import SNLI #, LSTM, BiLSTM, BiLSTM_pooling
 
+SEED = 42
 PATH_TO_DATA = 'dataset/'
 GLOVE_PATH = 'pretrained/glove.840B.300d.txt'
 
 params_model = {'model_name': 'base', 'bsize': 2, 'word_emb_dim': 300, 'enc_lstm_dim': 2048, 'pool_type': 'max', 'dpout_model': 0.0,\
                 'fc_dim': 512, 'n_classes': 3, 'learning_rate': 0.1, 'weight_decay': 1e-4, 'momentum': 0.08, 'max_epoch': 50}
 
-def evaluate_model(model):
-    # TO DO
-    print("*EVALUATING MODEL*")
-    score = 0
-    model.eval()
-    with torch.no_grad():
-        for i, (premise, hyp, label) in enumerate(test_batch):
-            out = model(premise[0], premise[1], hyp[0], hyp[1])
-            preds = torch.argmax(out, dim=1)
-            accuracy = torch.sum(preds == label, dtype=torch.float32) / out.shape[0]
-            score += accuracy
-        score /= i
-    return score
+# def evaluate_model(model):
+#     # TO DO
+#     print("*EVALUATING MODEL*")
+#     score = 0
+#     model.eval()
+#     with torch.no_grad():
+#         for i, (premise, hyp, label) in enumerate(test_batch):
+#             out = model(premise[0], premise[1], hyp[0], hyp[1])
+#             preds = torch.argmax(out, dim=1)
+#             accuracy = torch.sum(preds == label, dtype=torch.float32) / out.shape[0]
+#             score += accuracy
+#         score /= i
+#     return score
 
 if __name__ == "__main__":
     print("*PREPARING FOR TRAINING*")
@@ -44,43 +45,24 @@ if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     s1 = train['s1']
+    s2 = train['s2']
 
     for stidx in range(0, len(s1), params_model['bsize']):
         batch = s1[stidx:stidx + params_model['bsize']]
         s1_batch = get_batch(batch, word_vec, params_model)
-        # s2_batch, s2_len = get_batch(s2[stidx:stidx + params_model['bsize']], word_vec, params_model)
-    print(s1_batch)
-    # s2 = train['s2']
-    # target = train['target']
+        s2_batch = get_batch(s2[stidx:stidx + params_model['bsize']], word_vec, params_model)
 
-    # n_w = np.sum([len(x) for x in sentences])
+    print("*SETTING UP SNLI MODEL*")
 
-    # for i in range(len(sentences)):
-    #     s_f = [word for word in sentences[i] if word in word_vec]
-    #     if not s_f:
-    #         import warnings
-    #         warnings.warn('No words in "%s" (idx=%s) have w2v vectors. \
-    #                         Replacing by "</s>"..' % (sentences[i], i))
-    #         s_f = ['</s>']
-    # sentences[i] = s_f
+    # Initialise model and the optimizer and loss function
+    model = SNLI(params_model)
+    optimizer = torch.optim.SGD(model.parameters(), params_model['learning_rate'], params_model['weight_decay'], params_model['momentum'])
+    criterion = nn.CrossEntropyLoss()
 
-    # lengths = np.array([len(s) for s in sentences])
-    # n_wk = np.sum(lengths)
+    print("*TRAINING*")
 
-    # lengths, idx_sort = np.sort(lengths)[::-1], np.argsort(-lengths)
-    # sentences = np.array(sentences)[idx_sort]
+    torch.manual_seed(SEED)
 
-    # print(sentences)
-
- 
-
-
-    # print("*SETTING UP SNLI MODEL*")
-    # model = SNLI(params_model)
-
-    # criterion = nn.CrossEntropyLoss() # Loss function
-    # optimizer = torch.optim.SGD(model.parameters(), params_model['learning_rate'], params_model['weight_decay'], params_model['momentum'])
-
-    # print("*TRAINING*")
-    # writer = SummaryWriter(os.path.join('logs', params_model['model_name']))
-    # model.train()
+    writer = SummaryWriter(os.path.join('logs', params_model['model_name']))
+    
+    model.train()

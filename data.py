@@ -37,9 +37,10 @@ label_index = {'entailment': 0,  'neutral': 1, 'contradiction': 2, '<unk>': '<un
 
 
 def get_batch(batch, word_vec, params_model):
-
-    # sentences, lengths, idx_sort = prepare_samples(batch, params_model)
-    batch = [['<s>'] + word_tokenize(s) + ['</s>'] for s in batch]
+    sentences = [['<s>'] + word_tokenize(s) + ['</s>'] for s in batch]
+    lengths = np.array([len(s) for s in sentences])
+    lengths, idx_sort = np.sort(lengths)[::-1], np.argsort(-lengths)
+    batch = np.array(sentences)[idx_sort]
 
     embed = np.zeros((len(batch[0]), len(batch), params_model['word_emb_dim']))
 
