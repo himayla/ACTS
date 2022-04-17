@@ -7,49 +7,16 @@ import torch
 
 label_index = {'entailment': 0,  'neutral': 1, 'contradiction': 2, '<unk>': '<unk>'}
 
-
-# def prepare_samples(sentences, params):
-
-
-    # n_w = np.sum([len(x) for x in sentences])
-
-    # # filters words without w2v vectors
-    # for i in range(len(sentences)):
-    #     s_f = [word for word in sentences[i] if word in self.word_vec]
-    #     if not s_f:
-    #         import warnings
-    #         warnings.warn('No words in "%s" (idx=%s) have w2v vectors. \
-    #                         Replacing by "</s>"..' % (sentences[i], i))
-    #         s_f = [self.eos]
-    #     sentences[i] = s_f
-
-    # lengths = np.array([len(s) for s in sentences])
-    # n_wk = np.sum(lengths)
-    # if verbose:
-    #     print('Nb words kept : %s/%s (%.1f%s)' % (
-    #                 n_wk, n_w, 100.0 * n_wk / n_w, '%'))
-
-    # # sort by decreasing length
-    # lengths, idx_sort = np.sort(lengths)[::-1], np.argsort(-lengths)
-    # sentences = np.array(sentences)[idx_sort]
-
-    # return sentences, lengths, idx_sort
-
-
-def get_batch(batch, word_vec, params_model):
-    sentences = [['<s>'] + word_tokenize(s) + ['</s>'] for s in batch]
-    lengths = np.array([len(s) for s in sentences])
-    lengths, idx_sort = np.sort(lengths)[::-1], np.argsort(-lengths)
-    batch = np.array(sentences)[idx_sort]
-
-    embed = np.zeros((len(batch[0]), len(batch), params_model['word_emb_dim']))
-
-
+def get_batch(batch, word_vec, model_params):
+    lengths = np.array([len(x) for x in batch])
+    max_len = np.max(lengths)
+    embed = np.zeros((max_len, len(batch), model_params['word_emb_dim']))
+    
     for i in range(len(batch)):
         for j in range(len(batch[i])):
-            embed[j, i, :] = word_vec[batch[i][j]]
+                embed[j, i, :] = word_vec[batch[i][j]]
 
-    return torch.FloatTensor(embed)
+    return torch.FloatTensor(embed), lengths
 
 def load_data(path_to_dataset):
     data = []
@@ -66,14 +33,14 @@ def load_data(path_to_dataset):
     return train, dev, test
 
 def extract_sentences(file_name):
-    counter = 0##
+    # counter = 0##
 
     with open(file_name) as f:
         s1, s2, target = [], [], []
         
         for line in f:
-            if counter == 4: ##
-                break ##
+            # if counter == 100: ##
+            #     break ##
             line = json.loads(line)
 
             s1.append(line['sentence1'])
@@ -84,9 +51,9 @@ def extract_sentences(file_name):
             
             target.append(label_index[line['gold_label']])
 
-            counter += 1 ##
+            # counter += 1 ##
 
-    return {'s1': s1, 's2': s2, 'target': target}
+    return {'s1': s1, 's2': s2, 'target': np.array(target)}
     
 def get_vocab(sentences):
     word_dict = {}
@@ -98,7 +65,6 @@ def get_vocab(sentences):
                 word_dict[word] = ''
     word_dict['<s>'] = ''
     word_dict['</s>'] = ''
-    # word_dict['<p>'] = '' # padding token
 
     return word_dict
 
