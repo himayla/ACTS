@@ -50,10 +50,11 @@ def extract_sentences(file_name):
                 line['gold_label'] = '<unk>' # replcae unknown labels with unk
             
             target.append(label_index[line['gold_label']])
-
+        target = np.array(target)
+        print(target)
             # counter += 1 ##
 
-    return {'s1': s1, 's2': s2, 'target': np.array(target)}
+    return {'s1': s1, 's2': s2, 'target': target}
     
 def get_vocab(sentences):
     word_dict = {}
