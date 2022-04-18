@@ -26,14 +26,14 @@ parser.add_argument("--n_epochs", type=int, default=20)
 parser.add_argument("--bsize", type=int, default=64)
 parser.add_argument("--dpout_model", type=float, default=0., help="Encoder dropout")
 parser.add_argument("--dpout_fc", type=float, default=0., help="Classifier dropout")
-parser.add_argument("--nonlinear_fc", type=float, default=0, help="Use nonlinearity in fc") # fc = hidden layers
+parser.add_argument("--nonlinear_fc", type=float, default=0, help="Use nonlinearity in fc") # fc/fullyclosed = hidden layers
 
 # parser.add_argument("--optimizer", type=str, default="sgd,lr=0.1", help="adam or sgd,lr=0.1")
-parser.add_argument('--lr', type = float, default = 0.1, help='Learning rate for training')
+parser.add_argument('--lr', type = float, default = 0.1, help='learning rate for training')
 parser.add_argument('--weight_decay', type = float, default = 1e-4, help = 'weight decay for optimizer')
-parser.add_argument('--momentum', type = float, default = 0.8, help = 'Momentum for optimizer')
+parser.add_argument('--momentum', type = float, default = 0.8, help = 'momentum for optimizer')
 
-parser.add_argument("--lrshrink", type=float, default=5, help="shrink factor for sgd")
+parser.add_argument("--lrshrink", type=float, default=5, help="hrink factor for sgd")
 parser.add_argument("--decay", type=float, default=0.99, help="lr decay")
 parser.add_argument("--minlr", type=float, default=1e-5, help="minimum lr")
 parser.add_argument("--max_norm", type=float, default=5., help="max norm (grad clipping)")
